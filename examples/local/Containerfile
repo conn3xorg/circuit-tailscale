@@ -1,0 +1,11 @@
+# A throwaway Rocky Linux 10 host with systemd and sshd, for trying this
+# circuit. It matches the image Conn3x's own end-to-end tests use.
+FROM docker.io/rockylinux/rockylinux:10-ubi-init
+
+RUN dnf -y install openssh-server sudo \
+ && ssh-keygen -A \
+ && systemctl enable sshd \
+ && mkdir -p -m 700 /root/.ssh
+
+EXPOSE 22
+CMD ["/sbin/init"]
