@@ -31,7 +31,17 @@ Then run `conn3x init` and `conn3x apply`. A second `conn3x plan` says `No chang
 
 Routes you advertise still need approving in the admin console, unless your tailnet's auto-approvers cover them. The same goes for an exit node.
 
-To install Tailscale and leave the hosts logged out, say for a machine you'll join by hand, set `join = false` and leave out `auth_key`.
+### Join once, then set join = false
+
+While `join` is true, every plan needs `auth_key`. Auth keys expire after 90 days at most, so a plan you run months later would fail for want of a key, and passing a fresh one shows up as a change to the key file. The intended flow is:
+
+1. Apply once with `join = true` and a key. The hosts join.
+2. Set `join = false` and apply again. Conn3x deletes `/etc/tailscale/authkey` from each host and drops the join steps from state. The hosts stay logged in: removing the join step doesn't run anything on them.
+3. From then on, plan and apply without a key. Changes to `hostname`, `advertise_routes`, `advertise_exit_node`, `accept_routes` and `ssh` still reach the hosts through `tailscale set`.
+
+To add a host later, set `join = true` with a new key for that apply, then back to false. Hosts that are already in the tailnet skip `tailscale up`.
+
+To install Tailscale and leave the hosts logged out, say for a machine you'll join by hand, set `join = false` from the start and leave out `auth_key`.
 
 For hosts created in the same plan, pass host objects with the host key you generated, so Conn3x checks it without a known_hosts entry:
 
@@ -62,7 +72,7 @@ Before the circuit runs, the `conn3x_host` data source reads each host's distrib
 
 - **`tags` and `extra_args` apply only when a host joins.** `tailscale set` can't change them, so changing either on a joined host does nothing. Run `tailscale up` with the new flags on the host, or log it out and apply again.
 - **Removing a setting doesn't always undo it.** Set `hostname` back to null and the node keeps the name it had. Turning off forwarding leaves the sysctls at `1`.
-- **The key stays on disk.** `/etc/tailscale/authkey` is root-only, but it's still there after the join. Use a one-off or short-lived key if that matters to you, and delete the file once the host is in.
+- **The key stays on disk while `join` is true.** `/etc/tailscale/authkey` is root-only. Setting `join = false` deletes it; the empty `/etc/tailscale` directory stays.
 - **It doesn't log hosts out.** Removing the module, or setting `join = false`, leaves a joined host in the tailnet.
 - **`hostname` names every host the same.** Use it with a single host, or leave it null to take each host's own name.
 - **It doesn't touch the host firewall**, or approve routes and exit nodes for you.
@@ -99,9 +109,9 @@ Requires Conn3x v0.6.5 or later and systemd on each host, with outbound HTTPS to
 
 ## Tested on
 
-Rocky Linux 10, Fedora 45, Ubuntu 24.04 and Debian 13. CI applies [examples/local](examples/local) to each on amd64 with `join = false`, checks that the second plan has no changes, and checks that `tailscaled` is running, `tailscale version` answers and forwarding is on.
+Rocky Linux 10, Fedora 45, Ubuntu 24.04 and Debian 13. CI applies [examples/local](examples/local) to each on amd64 with `join = false`, checks that the second plan has no changes, and checks that `tailscaled` is running, `tailscale version` answers and forwarding is on. The test hosts are containers with SELinux disabled, so the circuit hasn't been tried with SELinux enforcing.
 
-Joining a tailnet isn't covered by CI, because it needs a real auth key. It was tried by hand only as far as Tailscale rejecting a fake key, which shows the key reaches `tailscale up` and stays out of state and the plan. A successful join with a real key hasn't been tested.
+Joining a tailnet isn't covered by CI, because it needs a real auth key. It was tried by hand only as far as Tailscale rejecting a fake key, which shows the key reaches `tailscale up` and stays out of state and the plan, and as far as switching `join` to false afterwards, which deleted the key file and left the next plan empty. A successful join with a real key hasn't been tested.
 
 ## License
 

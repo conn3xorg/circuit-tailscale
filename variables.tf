@@ -48,7 +48,7 @@ variable "auth_key" {
   description = "Tailscale auth key the hosts join the tailnet with, such as tskey-auth-.... Required when join is true."
 
   validation {
-    condition     = !var.join || var.auth_key != null
+    condition     = !var.join || (var.auth_key != null && var.auth_key != "")
     error_message = "Set auth_key, or set join = false to install Tailscale without joining."
   }
 }

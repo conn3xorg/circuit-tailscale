@@ -105,6 +105,8 @@ circuit "tailscale" {
     file {
       path       = local.key_file
       content_wo = var.auth_key
+      # Setting join = false removes the step, and with it the key.
+      on_remove = "delete"
     }
   }
 
