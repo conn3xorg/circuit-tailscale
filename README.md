@@ -109,7 +109,7 @@ Requires Conn3x v0.6.5 or later and systemd on each host, with outbound HTTPS to
 
 ## Tested on
 
-Rocky Linux 10, Fedora 45, Ubuntu 24.04 and Debian 13. CI applies [examples/local](examples/local) to each on amd64 with `join = false`, checks that the second plan has no changes, and checks that `tailscaled` is running, `tailscale version` answers and forwarding is on. The CI containers run with SELinux off. The same checks also passed by hand on a Rocky Linux 10 droplet with SELinux enforcing, with no denials in the audit log.
+Rocky Linux 10, Fedora 45, Ubuntu 24.04 and Debian 13. CI applies [examples/local](examples/local) to each on amd64 with `join = false`, checks that the second plan has no changes, and checks that `tailscaled` is running, `tailscale version` answers and forwarding is on. The CI containers run with SELinux off. The same checks also passed by hand on a Rocky Linux 10 droplet with SELinux enforcing, with no denials in the audit log, and on Fedora 44 and AlmaLinux 10 droplets, again after a reboot.
 
 Joining a tailnet isn't covered by CI, because it needs a real auth key. It was tried by hand only as far as Tailscale rejecting a fake key, which shows the key reaches `tailscale up` and stays out of state and the plan, and as far as switching `join` to false afterwards, which deleted the key file and left the next plan empty. A successful join with a real key hasn't been tested.
 
