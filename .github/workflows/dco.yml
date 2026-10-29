@@ -1,0 +1,39 @@
+name: DCO
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  DCO:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # Every non-merge commit needs a Signed-off-by for its author's email,
+      # as in conn3xorg/conn3x. Dependabot can't sign off; its PRs are
+      # reviewed instead.
+      - name: Check Signed-off-by on every commit
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          bad=0
+          for sha in $(git rev-list --no-merges "$BASE..$HEAD"); do
+            email=$(git log -1 --format=%ae "$sha")
+            [ "$email" = "49699333+dependabot[bot]@users.noreply.github.com" ] && continue
+            if ! git log -1 --format='%(trailers:key=Signed-off-by,valueonly)' "$sha" | grep -Fiq "<$email>"; then
+              echo "missing Signed-off-by for $email: $(git log -1 --format='%h %s' "$sha")"
+              bad=1
+            fi
+          done
+          if [ "$bad" -ne 0 ]; then
+            echo
+            echo "Sign off each commit with 'git commit -s'. See https://github.com/conn3xorg/.github/blob/main/CONTRIBUTING.md."
+            exit 1
+          fi
+          echo "All commits are signed off."

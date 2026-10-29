@@ -1,0 +1,12 @@
+version: 2
+updates:
+  # One PR a month at most, with every action bump in it.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci
