@@ -1,0 +1,18 @@
+# The test tailnet CI joins: Headscale, an open source control server, so a
+# real join needs no account or key from outside the run.
+server_url: http://10.88.0.200:8080
+listen_addr: 0.0.0.0:8080
+noise:
+  private_key_path: /var/lib/headscale/noise_private.key
+prefixes:
+  v4: 100.64.0.0/10
+derp:
+  urls:
+    - https://controlplane.tailscale.com/derpmap/default
+database:
+  type: sqlite
+  sqlite:
+    path: /var/lib/headscale/db.sqlite
+dns:
+  magic_dns: false
+  override_local_dns: false
