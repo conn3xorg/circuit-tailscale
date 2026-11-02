@@ -77,6 +77,39 @@ jobs:
           sudo podman exec circuit-tailscale systemctl is-active tailscaled
           sudo podman exec circuit-tailscale tailscale version
           sudo podman exec circuit-tailscale sysctl -n net.ipv4.ip_forward | grep -qx 1
+      # Joins a tailnet run by Headscale, then pings the host over it from a
+      # second node: the node is logged in, and traffic really gets through.
+      - name: Join a tailnet and reach the host across it
+        working-directory: examples/local
+        run: |
+          sudo podman run --rm -d --name headscale --ip 10.88.0.200 --tmpfs /var/lib/headscale --tmpfs /var/run/headscale \
+            -v "$PWD/headscale.yaml:/etc/headscale/config.yaml:ro" docker.io/headscale/headscale:0.29.7 serve
+          until sudo podman exec headscale headscale users create ci; do sleep 1; done
+          key=$(sudo podman exec headscale headscale preauthkeys create --user 1 --reusable --expiration 1h | tail -1)
+          echo "::add-mask::$key"
+          export TF_VAR_auth_key="$key"
+          args=(-var join=true -var 'extra_args=["--login-server=http://10.88.0.200:8080"]')
+          conn3x apply -auto-approve "${args[@]}"
+          conn3x plan -detailed-exitcode "${args[@]}"
+          if grep -qF "$key" terraform.tfstate; then echo "the auth key is in state" >&2; exit 1; fi
+          sudo podman exec circuit-tailscale tailscale status --json | jq -e '.BackendState == "Running"'
+          address=$(sudo podman exec circuit-tailscale tailscale ip -4)
+          sudo podman run --rm -d --name peer -e "TS_AUTHKEY=$key" -e TS_USERSPACE=true -e TS_HOSTNAME=peer \
+            -e TS_EXTRA_ARGS=--login-server=http://10.88.0.200:8080 docker.io/tailscale/tailscale:v1.90.9
+          for _ in $(seq 30); do
+            if sudo podman exec peer tailscale ping -c 1 --timeout 5s "$address"; then ok=1; break; fi
+            sleep 2
+          done
+          [ "${ok:-}" = 1 ]
+          sudo podman exec circuit-tailscale systemctl restart tailscaled
+          for _ in $(seq 30); do
+            if sudo podman exec peer tailscale ping -c 1 --timeout 5s "$address"; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - name: Stop the test tailnet
+        if: always()
+        run: sudo podman stop peer headscale || true
       - name: Clean up
         if: always()
         working-directory: examples/local

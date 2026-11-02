@@ -16,6 +16,12 @@ variable "auth_key" {
   ephemeral = true
 }
 
+# CI points this at its own control server with --login-server.
+variable "extra_args" {
+  type    = list(string)
+  default = []
+}
+
 module "tailscale" {
   source = "../.."
 
@@ -26,6 +32,7 @@ module "tailscale" {
 
   join             = var.join
   auth_key         = var.auth_key
+  extra_args       = var.extra_args
   hostname         = "conn3x-example"
   advertise_routes = ["10.88.0.0/16"]
   ssh              = true

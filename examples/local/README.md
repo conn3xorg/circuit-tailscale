@@ -26,7 +26,7 @@ export TF_VAR_auth_key=tskey-auth-...
 conn3x apply -var join=true
 ```
 
-The node is named `conn3x-example` and advertises `10.88.0.0/16`. Joining with a real key hasn't been tested; see [Tested on](../../README.md#tested-on).
+The node is named `conn3x-example` and advertises `10.88.0.0/16`. CI tests joining against Headscale; see [Tested on](../../README.md#tested-on).
 
 `up.sh` listens on `127.0.0.1:2222`. Set `PORT` to use another port, and pass the same port to Conn3x with `-var port=PORT`. Set `CONTAINERFILE` to test another distro, such as one of the images in Conn3x's `test/images`, which CI uses.
 

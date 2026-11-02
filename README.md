@@ -8,7 +8,7 @@ The auth key comes in through an ephemeral variable, so it never lands in state 
 
 ```hcl
 module "tailscale" {
-  source = "github.com/conn3xorg/circuit-tailscale?ref=v0.1.0"
+  source = "github.com/conn3xorg/circuit-tailscale?ref=v0.1.1"
 
   hosts                = { nas = "192.168.1.20" }
   ssh_private_key_file = "~/.ssh/id_ed25519"
@@ -109,9 +109,9 @@ Requires Conn3x v0.6.5 or later and systemd on each host, with outbound HTTPS to
 
 ## Tested on
 
-Rocky Linux 10, Fedora 45, Ubuntu 24.04 and Debian 13. CI applies [examples/local](examples/local) to each on amd64 with `join = false`, checks that the second plan has no changes, and checks that `tailscaled` is running, `tailscale version` answers and forwarding is on. The CI containers run with SELinux off. The same checks also passed by hand on a Rocky Linux 10 droplet with SELinux enforcing, with no denials in the audit log, and on Fedora 44 and AlmaLinux 10 droplets, again after a reboot.
+Rocky Linux 10, Fedora 45, Ubuntu 24.04 and Debian 13. CI applies [examples/local](examples/local) to each on amd64 with `join = false`, checks that the second plan has no changes, and checks that `tailscaled` is running, `tailscale version` answers and forwarding is on. It then applies again with `join = true` against a [Headscale](https://headscale.net) control server, checks the plan is still clean and the key stayed out of state, and pings the host across the tailnet from a second node, before and after restarting `tailscaled`. The CI containers run with SELinux off. The same checks also passed by hand on a Rocky Linux 10 droplet with SELinux enforcing, with no denials in the audit log, and on Fedora 44 and AlmaLinux 10 droplets, again after a reboot.
 
-Joining a tailnet isn't covered by CI, because it needs a real auth key. It was tried by hand only as far as Tailscale rejecting a fake key, which shows the key reaches `tailscale up` and stays out of state and the plan, and as far as switching `join` to false afterwards, which deleted the key file and left the next plan empty. A successful join with a real key hasn't been tested.
+Joining Tailscale's own control plane isn't covered by CI, because it needs a real auth key. By hand, Tailscale rejected a fake key, which shows the key reaches `tailscale up`, and switching `join` to false afterwards deleted the key file and left the next plan empty.
 
 ## License
 
