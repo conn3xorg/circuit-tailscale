@@ -1,5 +1,7 @@
 # circuit-tailscale
 
+[![Conn3x grade](https://conn3x.org/circuits/tailscale/grade.svg)](https://conn3x.org/circuits/tailscale/grade)
+
 A Conn3x circuit that installs [Tailscale](https://tailscale.com) from Tailscale's own package repository, keeps `tailscaled` running, and joins your hosts to your tailnet. Point it at a NAS, a Proxmox box or a fleet of VPS hosts, and it runs `tailscale up` on each one with the name, routes and Tailscale SSH setting you gave it, so nobody has to do it by hand.
 
 The auth key comes in through an ephemeral variable, so it never lands in state or a plan.
