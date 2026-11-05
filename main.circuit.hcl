@@ -11,6 +11,13 @@ data "conn3x_host" "facts" {
     jump_hosts       = try(each.value.jump_hosts, null)
     known_hosts_file = var.ssh_known_hosts_file
   }
+
+  lifecycle {
+    postcondition {
+      condition     = contains(keys(local.repo), self.os_id)
+      error_message = "Host ${each.key} runs ${self.os_id}. This circuit supports Rocky Linux, AlmaLinux, RHEL, Fedora, Debian and Ubuntu. CentOS Linux reached end of life on 30 June 2024: use Rocky Linux."
+    }
+  }
 }
 
 locals {
