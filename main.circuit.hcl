@@ -17,7 +17,7 @@ locals {
   # Tailscale publishes one repository per distribution, all signed with the
   # same key. Rocky Linux and AlmaLinux use the RHEL one. apt needs the
   # release's codename.
-  repo     = { rocky = "rhel/$releasever", almalinux = "rhel/$releasever", rhel = "rhel/$releasever", centos = "rhel/$releasever", fedora = "fedora", ubuntu = "ubuntu", debian = "debian" }
+  repo     = { rocky = "rhel/$releasever", almalinux = "rhel/$releasever", rhel = "rhel/$releasever", fedora = "fedora", ubuntu = "ubuntu", debian = "debian" }
   codename = { "22.04" = "jammy", "24.04" = "noble", "26.04" = "resolute", "12" = "bookworm", "13" = "trixie" }
 
   hosts = {
